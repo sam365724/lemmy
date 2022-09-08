@@ -1,6 +1,6 @@
 use crate::sensitive::Sensitive;
 use lemmy_db_schema::{
-  newtypes::{CommentId, CommunityId, PersonId, PostId},
+  newtypes::{CommentId, CommunityId, LanguageId, PersonId, PostId},
   source::language::Language,
   ListingType,
   ModlogActionType,
@@ -147,8 +147,9 @@ pub struct EditSite {
   pub default_theme: Option<String>,
   pub default_post_listing_type: Option<String>,
   pub legal_information: Option<String>,
-  pub auth: Sensitive<String>,
   pub hide_modlog_mod_names: Option<bool>,
+  pub discussion_languages: Option<Vec<LanguageId>>,
+  pub auth: Sensitive<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

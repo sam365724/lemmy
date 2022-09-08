@@ -389,11 +389,11 @@ mod tests {
     aggregates::structs::CommentAggregates,
     newtypes::LanguageId,
     source::{
+      actor_language::LocalUserLanguage,
       comment::*,
       community::*,
       language::Language,
       local_user::LocalUserForm,
-      local_user_language::LocalUserLanguage,
       person::*,
       person_block::PersonBlockForm,
       post::*,
@@ -703,12 +703,8 @@ mod tests {
 
     // change user lang to finnish, should only show single finnish comment
     let finnish_id = Language::read_id_from_code(&conn, "fi").unwrap();
-    LocalUserLanguage::update_user_languages(
-      &conn,
-      Some(vec![finnish_id]),
-      data.inserted_local_user.id,
-    )
-    .unwrap();
+    LocalUserLanguage::update_user_languages(&conn, vec![finnish_id], data.inserted_local_user.id)
+      .unwrap();
     let finnish_comment = CommentQuery::builder()
       .conn(&conn)
       .local_user(Some(&data.inserted_local_user))
@@ -726,7 +722,7 @@ mod tests {
     let undetermined_id = Language::read_id_from_code(&conn, "und").unwrap();
     LocalUserLanguage::update_user_languages(
       &conn,
-      Some(vec![undetermined_id]),
+      vec![undetermined_id],
       data.inserted_local_user.id,
     )
     .unwrap();
