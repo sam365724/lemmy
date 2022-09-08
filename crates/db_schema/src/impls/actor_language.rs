@@ -14,7 +14,7 @@ use diesel::{
 use lemmy_utils::error::LemmyError;
 
 impl LocalUserLanguage {
-  pub fn read_user_langs(
+  pub fn read(
     conn: &PgConnection,
     for_local_user_id: LocalUserId,
   ) -> Result<Vec<LanguageId>, Error> {
@@ -29,7 +29,7 @@ impl LocalUserLanguage {
   /// Update the user's languages.
   ///
   /// If no language_id vector is given, it will show all languages
-  pub fn update_user_languages(
+  pub fn update(
     conn: &PgConnection,
     language_ids: Vec<LanguageId>,
     for_local_user_id: LocalUserId,
@@ -63,7 +63,7 @@ impl SiteLanguage {
       .load(conn)
   }
 
-  pub fn update_site_languages(
+  pub fn update(
     conn: &PgConnection,
     language_ids: Vec<LanguageId>,
     for_site_id: SiteId,
@@ -109,7 +109,7 @@ impl CommunityLanguage {
     }
   }
 
-  pub fn update_community_languages(
+  pub fn update(
     conn: &PgConnection,
     language_ids: Vec<LanguageId>,
     for_community_id: CommunityId,
