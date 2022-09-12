@@ -64,7 +64,7 @@ pub struct SiteLanguage {
   pub language_id: LanguageId,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "full", derive(Insertable, AsChangeset))]
 #[cfg_attr(feature = "full", table_name = "site_language")]
 pub struct SiteLanguageForm {
