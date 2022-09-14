@@ -106,6 +106,7 @@ pub struct RegistrationApplicationView {
 pub struct SiteView {
   pub site: Site,
   pub counts: SiteAggregates,
+  pub languages: Vec<Language>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

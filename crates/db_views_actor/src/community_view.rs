@@ -15,12 +15,15 @@ use lemmy_db_schema::{
   SortType,
 };
 use typed_builder::TypedBuilder;
+use lemmy_db_schema::schema::{community_language, language};
+use lemmy_db_schema::source::language::Language;
 
 type CommunityViewTuple = (
   CommunitySafe,
   CommunityAggregates,
   Option<CommunityFollower>,
   Option<CommunityBlock>,
+  Vec<Language>
 );
 
 impl CommunityView {
@@ -29,39 +32,48 @@ impl CommunityView {
     community_id: CommunityId,
     my_person_id: Option<PersonId>,
   ) -> Result<Self, Error> {
-    // The left join below will return None in this case
-    let person_id_join = my_person_id.unwrap_or(PersonId(-1));
+    conn.build_transaction().read_write().run(|| {
+      // The left join below will return None in this case
+      let person_id_join = my_person_id.unwrap_or(PersonId(-1));
 
-    let (community, counts, follower, blocked) = community::table
-      .find(community_id)
-      .inner_join(community_aggregates::table)
-      .left_join(
-        community_follower::table.on(
-          community::id
-            .eq(community_follower::community_id)
-            .and(community_follower::person_id.eq(person_id_join)),
-        ),
-      )
-      .left_join(
-        community_block::table.on(
-          community::id
-            .eq(community_block::community_id)
-            .and(community_block::person_id.eq(person_id_join)),
-        ),
-      )
-      .select((
-        Community::safe_columns_tuple(),
-        community_aggregates::all_columns,
-        community_follower::all_columns.nullable(),
-        community_block::all_columns.nullable(),
-      ))
-      .first::<CommunityViewTuple>(conn)?;
+      let (community, counts, follower, blocked) = community::table
+          .find(community_id)
+          .inner_join(community_aggregates::table)
+          .left_join(
+            community_follower::table.on(
+              community::id
+                  .eq(community_follower::community_id)
+                  .and(community_follower::person_id.eq(person_id_join)),
+            ),
+          )
+          .left_join(
+            community_block::table.on(
+              community::id
+                  .eq(community_block::community_id)
+                  .and(community_block::person_id.eq(person_id_join)),
+            ),
+          )
+          .select((
+            Community::safe_columns_tuple(),
+            community_aggregates::all_columns,
+            community_follower::all_columns.nullable(),
+            community_block::all_columns.nullable(),
+          ))
+          .first::<CommunityViewTuple>(conn)?;
 
-    Ok(CommunityView {
-      community,
-      subscribed: CommunityFollower::to_subscribed_type(&follower),
-      blocked: blocked.is_some(),
-      counts,
+      let languages = community::table
+          .inner_join(community_language::table)
+          .filter(community::id.eq(community.id))
+          .select(language::all_columns)
+          .load::<Language>(conn)?;
+
+      Ok(CommunityView {
+        community,
+        subscribed: CommunityFollower::to_subscribed_type(&follower),
+        blocked: blocked.is_some(),
+        counts,
+        languages
+      })
     })
   }
 
@@ -219,6 +231,7 @@ impl ViewToVec for CommunityView {
         counts: a.1,
         subscribed: CommunityFollower::to_subscribed_type(&a.2),
         blocked: a.3.is_some(),
+        languages: a.4
       })
       .collect::<Vec<Self>>()
   }
