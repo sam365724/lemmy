@@ -1,6 +1,8 @@
 {
   # for more info about the config, check out the documentation
   # https://join-lemmy.org/docs/en/administration/configuration.html
+  # This config is for the development version (main branch) of lemmy. 
+  # Do not use with a stable release version.
 
   setup: {
     # username for the admin user
